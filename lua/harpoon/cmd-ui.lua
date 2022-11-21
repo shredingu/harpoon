@@ -148,7 +148,12 @@ function M.select_menu_item()
         if idx == "" then
             idx = "{next}"
         end
-        tmux.sendCommand(idx, cmd)
+        local idx_number = tonumber(idx)
+        if idx_number == nil then
+            tmux.sendCommand(idx, cmd)
+        else
+            tmux.sendCommand(idx_number, cmd)
+        end
     else
         local idx = vim.fn.input("Terminal index (default to 1): ")
         if idx == "" then
