@@ -32,10 +32,19 @@ local function create_terminal()
     -- Create a new tmux window and store the window id
     local out, ret, _ = utils.get_os_command_output({
         "tmux",
-        "new-window",
+        "split-window",
+        "-d",
         "-P",
         "-F",
         "#{pane_id}",
+        ";",
+        "set-option",
+        "-w",
+        "main-pane-width",
+        "60%",
+        ";",
+        "select-layout",
+        "main-vertical",
     }, vim.loop.cwd())
 
     if ret == 0 then
@@ -58,15 +67,15 @@ local function terminal_exists(window_id)
 
     local window_list, _, _ = utils.get_os_command_output({
         "tmux",
-        "list-windows",
+        "list-pane",
+        "-F",
+        "#D",
     }, vim.loop.cwd())
 
     -- This has to be done this way because tmux has-session does not give
     -- updated results
     for _, line in pairs(window_list) do
-        local window_info = utils.split_string(line, "@")[2]
-
-        if string.find(window_info, string.sub(window_id, 2)) then
+        if line == window_id then
             exists = true
         end
     end
@@ -111,6 +120,8 @@ local function find_terminal(args)
 
         tmux_windows[args.idx] = window_handle
     end
+
+    window_handle.pane = true
 
     return window_handle
 end
