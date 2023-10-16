@@ -10,16 +10,50 @@ local cache_config = string.format("%s/harpoon.json", data_path)
 
 local M = {}
 
-local the_primeagen_harpoon =
-    vim.api.nvim_create_augroup("THE_PRIMEAGEN_HARPOON", { clear = true })
+local the_primeagen_harpoon = vim.api.nvim_create_augroup(
+    "THE_PRIMEAGEN_HARPOON",
+    { clear = true }
+)
 
-vim.api.nvim_create_autocmd({ "BufLeave, VimLeave" }, {
+vim.api.nvim_create_autocmd({ "BufLeave", "VimLeave" }, {
     callback = function()
         require("harpoon.mark").store_offset()
     end,
     group = the_primeagen_harpoon,
 })
 
+vim.api.nvim_create_autocmd("FileType", {
+    pattern = "harpoon",
+    group = the_primeagen_harpoon,
+
+    callback = function()
+        -- Open harpoon file choice in useful ways
+        --
+        -- vertical split (control+v)
+        vim.keymap.set("n", "<C-V>", function()
+            local curline = vim.api.nvim_get_current_line()
+            local working_directory = vim.fn.getcwd() .. "/"
+            vim.cmd("vs")
+            vim.cmd("e " .. working_directory .. curline)
+        end, { buffer = true, noremap = true, silent = true })
+
+        -- horizontal split (control+x)
+        vim.keymap.set("n", "<C-x>", function()
+            local curline = vim.api.nvim_get_current_line()
+            local working_directory = vim.fn.getcwd() .. "/"
+            vim.cmd("sp")
+            vim.cmd("e " .. working_directory .. curline)
+        end, { buffer = true, noremap = true, silent = true })
+
+        -- new tab (control+t)
+        vim.keymap.set("n", "<C-t>", function()
+            local curline = vim.api.nvim_get_current_line()
+            local working_directory = vim.fn.getcwd() .. "/"
+            vim.cmd("tabnew")
+            vim.cmd("e " .. working_directory .. curline)
+        end, { buffer = true, noremap = true, silent = true })
+    end,
+})
 --[[
 {
     projects = {
@@ -176,6 +210,9 @@ function M.setup(config)
             ["tmux_autoclose_windows"] = false,
             ["excluded_filetypes"] = { "harpoon" },
             ["mark_branch"] = false,
+            ["tabline"] = false,
+            ["tabline_suffix"] = "   ",
+            ["tabline_prefix"] = "   ",
         },
     }, expand_dir(c_config), expand_dir(u_config), expand_dir(config))
 
@@ -183,7 +220,12 @@ function M.setup(config)
     -- an object for vim.loop.cwd()
     ensure_correct_config(complete_config)
 
+    if complete_config.tabline then
+        require("harpoon.tabline").setup(complete_config)
+    end
+
     HarpoonConfig = complete_config
+
     log.debug("setup(): Complete config", HarpoonConfig)
     log.trace("setup(): log_key", Dev.get_log_key())
 end
