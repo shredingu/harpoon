@@ -11,15 +11,8 @@ local callbacks = {}
 -- need one event emitted
 local function emit_changed()
     log.trace("_emit_changed()")
-
-    local global_settings = harpoon.get_global_settings()
-
-    if global_settings.save_on_change then
+    if harpoon.get_global_settings().save_on_change then
         harpoon.save()
-    end
-
-    if global_settings.tabline then
-        vim.cmd("redrawt")
     end
 
     if not callbacks["changed"] then
