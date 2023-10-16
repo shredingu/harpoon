@@ -32,21 +32,20 @@ end
 
 function M.setup(opts)
     function _G.tabline()
-        local tabs = shorten_filenames(require('harpoon').get_mark_config().marks)
+        local original_tabs = require('harpoon').get_mark_config().marks
+        local tabs = shorten_filenames(original_tabs)
         local tabline = ''
 
-        local index = require('harpoon.mark').get_index_of(vim.fn.bufname())
-
-        for i, tab in ipairs(tabs) do
-            local is_current = i == index
+        for i, tab in ipairs(original_tabs) do
+            local is_current = string.match(vim.fn.bufname(), tab.filename) or vim.fn.bufname() == tab.filename
 
             local label
 
-            if tab.filename == "" or tab.filename == "(empty)" then
+            if tabs[i].filename == "" or tabs[i].filename == "(empty)" then
                 label = "(empty)"
                 is_current = false
             else
-                label = tab.filename
+                label = tabs[i].filename
             end
 
 
@@ -59,7 +58,6 @@ function M.setup(opts)
             end
 
             tabline = tabline .. label .. (opts.tabline_suffix or '   ') .. '%*'
-
             if i < #tabs then
                 tabline = tabline .. '%T'
             end
